@@ -9,11 +9,11 @@ import java.util.List;
 public class FlightServiceImpl  implements FlightService{
 
     @Override
-    public List<FlightDetail> getFlights() {
+    public List<FlightDetail> getFlights(String city) {
         List<FlightDetail> flightDetails = List.of(new FlightDetail("SriLankan", 100),
                 new FlightDetail("QuatarAirways", 200),
                 new FlightDetail("Emirates", 300),
-                new FlightDetail("SingaporeAirline", 500));
+                new FlightDetail("SingaporeAirline", 400));
         return flightDetails;
     }
 }

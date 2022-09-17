@@ -12,9 +12,9 @@ public class BookingService {
     @Autowired
     private FlightService flightService;
 
-    public List<FlightDetail> getCheapFlights (double maxAmount) {
+    public List<FlightDetail> getCheapFlights (double maxAmount, String city) {
 
-        List<FlightDetail> flightDetailLit = flightService.getFlights();
+        List<FlightDetail> flightDetailLit = flightService.getFlights(city);
         List<FlightDetail> filteredFlightDetailLit =flightDetailLit.stream()
                 .filter(flightDetail -> flightDetail.getPrice() <= maxAmount)
                 .collect(Collectors.toList());
