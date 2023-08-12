@@ -1,7 +1,7 @@
 package com.aruna.mokitotest.flightbooking;
 
 import com.aruna.mokitotest.thirdparty.model.FlightDetail;
-import com.aruna.mokitotest.thirdparty.service.FlightService;
+
 import static org.assertj.core.api.Assertions.*;
 
 import com.aruna.mokitotest.thirdparty.service.FlightServiceImpl;
@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import static org.mockito.AdditionalMatchers.*;
 import static org.mockito.Mockito.*;
 
-import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -26,7 +28,7 @@ public class BookingServiceTest {
     private FlightServiceImpl flightService;
 
     @Test
-    public void testGetCheapFlights () {
+    public void testGetCheapFlights() {
 
         List<FlightDetail> londonMockFlights = List.of(new FlightDetail("MockedSriLankan", 100),
                 new FlightDetail("MockedQatarAirways", 200),
@@ -40,11 +42,50 @@ public class BookingServiceTest {
 
         when(flightService.getFlights("London")).thenReturn(londonMockFlights);
         when(flightService.getFlights("Paris")).thenReturn(parisMockFlights);
+        when(flightService.getFlights(("Melbourn"))).thenAnswer(invocationOnMock -> getDummyFlights(invocationOnMock.getArgument(0)));
 
-        List<FlightDetail> parisCheapFlights = bookingService.getCheapFlights(250, "Paris");
-        assertThat(parisCheapFlights).hasSize(1);
+        List<FlightDetail> flights = bookingService.getCheapFlights(250, "Paris");
+        assertThat(flights).hasSize(1);
 
-        List<FlightDetail> londonCheapFlights = bookingService.getCheapFlights(250, "London");
-        assertThat(londonCheapFlights).hasSize(3);
+        flights = bookingService.getCheapFlights(250, "London");
+        assertThat(flights).hasSize(3);
+
+        flights = bookingService.getCheapFlights(200, "Melbourn");
+        assertThat(flights).hasSize(1);
+        assertThat(flights.get(0).getPrice() == 150);
+
+        // callRealMethod
+        when(flightService.getFlights("London")).thenAnswer(InvocationOnMock::callRealMethod);
+        flights = bookingService.getCheapFlights(250, "London");
+        assertThat(flights).hasSize(2);
+
+        // anyString() // anyInt() ....
+        when(flightService.getFlights(anyString())).thenReturn(getDummyFlights("dummy"));
+        flights = bookingService.getCheapFlights(250, "London");
+        assertThat(flights).hasSize(1);
+
+        // anyString() with eq() :
+        // if anyString() is there then fixed values should be passed with eq(), otherwise fails
+
+        when(flightService.getFlightsWithDestination(eq("Stockholm"), anyString())).thenAnswer(invocationOnMock -> getDummyFlights("Stockholm"));
+        flights = bookingService.getCheapFlightsWithDestination(250, "Stockholm", "London");
+        assertThat(flights).hasSize(1);
+
+        // Combining Matchers or() / not () / and ()
+        when(flightService.getFlightsWithDestination(or(eq("Stockholm"), contains("Amst")), anyString())).thenAnswer(invocationOnMock -> getDummyFlights("Stockholm"));
+        flights = bookingService.getCheapFlightsWithDestination(250, "Stockholm", "London");
+        assertThat(flights).hasSize(1);
+
+
+        // ArgumentMatcher<T>
+        // example argThat(ArgumentMatcher<T> matcher)
+        when(flightService.getFlightsWithDestination(argThat(s -> s.startsWith("St")), anyString())).thenAnswer(invocationOnMock -> getDummyFlights("Stockholm"));
+        flights = bookingService.getCheapFlightsWithDestination(250, "Stockholm", "London");
+        assertThat(flights).hasSize(1);
+    }
+
+    private List<FlightDetail> getDummyFlights(String city) {
+        return List.of(new FlightDetail(city + "Airline", 150));
+
     }
 }

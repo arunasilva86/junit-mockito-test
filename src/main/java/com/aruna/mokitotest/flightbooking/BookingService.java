@@ -21,4 +21,14 @@ public class BookingService {
         return filteredFlightDetailLit;
     }
 
+    public List<FlightDetail> getCheapFlightsWithDestination (double maxAmount, String from, String to) {
+
+        List<FlightDetail> flightDetailLit = flightService.getFlightsWithDestination(from, to);
+        List<FlightDetail> filteredFlightDetailLit =flightDetailLit.stream()
+                .filter(flightDetail -> flightDetail.getPrice() <= maxAmount)
+                .collect(Collectors.toList());
+        return filteredFlightDetailLit;
+    }
+
+
 }
